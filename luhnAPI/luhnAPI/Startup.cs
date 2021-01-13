@@ -37,6 +37,8 @@ namespace luhnAPI
                     options.ClientErrorMapping[404].Link =
                         "https://httpstatuses.com/404";
                 });
+            // Register the Swagger generator, defining 1 or more Swagger documents
+            services.AddSwaggerGen();
             //services.AddMvcCore().SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_3_0);
             services.AddLogging(builder =>
             {
@@ -58,6 +60,8 @@ namespace luhnAPI
             {
                 _logger.LogInformation("Configuring for Development environment");
                 app.UseDeveloperExceptionPage();
+                app.UseSwagger();
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebApplication3 v1"));
             }
             else
             {
