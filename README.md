@@ -12,5 +12,7 @@ This tool was an answer to a problem that some testers were having with having t
 
 # Disclaimer
 
-This tool is only meant to be used in a testing environment.  The numbers generated via the LUHN alogrithim are in no way actual associated with actual fincancial accounts.
+This tool is only meant to be used in a testing environment.  The numbers generated via the LUHN alogrithim are in no way actual associated with actual fincancial accounts.  
 
+# Notes
+If running this locally, you can access Swagger by going to https://localhost:44323/swagger/index.html .  44323 is the port listed in launchSettings.json for iisExpress sslPort.
