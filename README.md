@@ -1,6 +1,6 @@
 # ![lunhAPI](luhnAPI/luhnAPI/media/Cards-512.png)
 
-# lunhAPI v1.2
+# lunhAPI v1.3
 
 [![Build status](https://kj2w.visualstudio.com/Luhn%20Algorithim%20API/_apis/build/status/LuhnAPI-clone)](https://kj2w.visualstudio.com/Luhn%20Algorithim%20API/_build/latest?definitionId=8)
 
