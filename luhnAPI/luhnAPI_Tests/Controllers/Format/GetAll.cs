@@ -4,10 +4,12 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace LuhnAlgorithim.Controllers.Tests
 {
     [TestClass()]
+    [ExcludeFromCodeCoverage]
     public class GetAll
     {
         private readonly FormatController _formatController;

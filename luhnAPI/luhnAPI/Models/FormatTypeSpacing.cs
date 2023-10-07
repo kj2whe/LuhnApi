@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace LuhnAlgorithim.Models
 {
     public class FormatTypeSpacing : FormatType

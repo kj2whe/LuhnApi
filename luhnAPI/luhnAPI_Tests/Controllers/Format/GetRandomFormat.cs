@@ -4,11 +4,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace LuhnAlgorithim.Controllers.Tests
 {
     [TestClass()]
+    [ExcludeFromCodeCoverage]
     public class GetRandomFormat
     {
         private readonly FormatController _formatController;

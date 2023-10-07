@@ -234,6 +234,7 @@ namespace LuhnAlgorithim.Controllers
             return results;
         }
 
+
         private int CalculateDoubleSum(int i)
         {
             var iDouble = i * 2;
