@@ -1,9 +1,62 @@
-﻿trigger:
-  - master
-
-pool:
-  vmImage: 'windows-latest'
-
-steps:
-  - script: echo Hello, world!
-    displayName: 'Run a one-line script'
+﻿# Variable 'ApplicationInsights.InstrumentationKey' was defined in the Variables tab
+# Variable Group 'New variable group 10-Jan' was defined in the Variables tab
+variables:
+  - name: BuildParameters.RestoreBuildProjects
+    value: '**/*.csproj'
+trigger:
+  branches:
+    include:
+      - master
+name: $(date:yyyyMMdd)$(rev:.r)
+jobs:
+  - job: Phase_1
+    displayName: Agent job 1
+    cancelTimeoutInMinutes: 1
+    pool:
+      vmImage: windows-latest
+    steps:
+      - checkout: self
+        clean: true
+        fetchTags: true
+      - task: AzureKeyVault@1
+        displayName: 'Azure Key Vault: kj2wheTestKeyVaultName'
+        inputs:
+          ConnectedServiceName: d8605d42-0632-4360-9b5c-198922708bec
+          KeyVaultName: kj2wheTestKeyVaultName
+      - task: qetza.replacetokens.replacetokens-task.replacetokens@3
+        displayName: Replace tokens in **/*.json
+        inputs:
+          targetFiles: '**/*.json'
+      - task: DotNetCoreCLI@2
+        displayName: Restore
+        inputs:
+          command: restore
+          projects: $(BuildParameters.RestoreBuildProjects)
+      - task: DotNetCoreCLI@2
+        displayName: Build
+        inputs:
+          projects: $(BuildParameters.RestoreBuildProjects)
+          arguments: --configuration $(BuildConfiguration)
+      - task: DotNetCoreCLI@2
+        displayName: Publish
+        inputs:
+          command: publish
+          publishWebProjects: false
+          projects: $(BuildParameters.RestoreBuildProjects)
+          arguments: --configuration $(BuildConfiguration) --output $(build.artifactstagingdirectory) --self-contained -r win-x86
+          zipAfterPublish: True
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Artifact: ArtifactStagingDirectory'
+        inputs:
+          PathtoPublish: $(build.artifactstagingdirectory)
+          ArtifactName: ArtifactStagingDirectory
+          TargetPath: '\\my\share\$(Build.DefinitionName)\$(Build.BuildNumber)'
+      - task: AzureRmWebAppDeployment@3
+        displayName: 'Azure App Service Deploy: LuhnAPI'
+        inputs:
+          ConnectedServiceName: d8605d42-0632-4360-9b5c-198922708bec
+          WebAppKind: api
+          WebAppName: LuhnAPI
+          Package: $(System.ArtifactsDirectory)/**/*.zip
+          TakeAppOfflineFlag: true
+...
