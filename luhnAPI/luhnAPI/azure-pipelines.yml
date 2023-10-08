@@ -1,0 +1,102 @@
+﻿# Variable 'ApplicationInsights.InstrumentationKey' was defined in the Variables tab
+# Variable 'UseAppHost' was defined in the Variables tab
+# Variable Group 'New variable group 10-Jan' was defined in the Variables tab
+variables:
+  - name: BuildParameters.RestoreBuildProjects
+    value: '**/*.csproj'
+trigger:
+  branches:
+    include:
+      - master
+name: $(date:yyyyMMdd)$(rev:.r)
+jobs:
+  - job: Phase_1
+    displayName: Agent job 1
+    cancelTimeoutInMinutes: 1
+    pool:
+      vmImage: windows-latest
+    steps:
+      - checkout: self
+        clean: true
+        fetchTags: true
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Artifact: SourcesDirectory'
+        enabled: False
+        inputs:
+          PathtoPublish: $(Build.SourcesDirectory)
+          ArtifactName: SourcesDirectory
+      - task: NuGetCommand@2
+        displayName: NuGet restore
+        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+      - task: DotNetCoreCLI@2
+        displayName: Restore
+        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+        inputs:
+          command: restore
+          projects: $(BuildParameters.RestoreBuildProjects)
+      - task: DotNetCoreCLI@2
+        displayName: Build
+        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+        inputs:
+          projects: $(BuildParameters.RestoreBuildProjects)
+          arguments: --configuration $(BuildConfiguration)
+      - task: DotNetCoreCLI@2
+        displayName: dotnet test
+        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+        enabled: False
+        inputs:
+          command: test
+          projects: $(Build.SourcesDirectory)\luhnAPI\luhnAPI_Tests\luhnAPI_Tests.csproj
+          arguments: --configuration Release --no-build --collect "Code coverage"
+      - task: AzureKeyVault@2
+        displayName: 'Azure Key Vault: luhnKeyVault'
+        inputs:
+          ConnectedServiceName: d8605d42-0632-4360-9b5c-198922708bec
+          KeyVaultName: luhnKeyVault
+      - task: qetza.replacetokens.replacetokens-task.replacetokens@3
+        displayName: Replace tokens in **/*.json
+        inputs:
+          targetFiles: '**/*.json'
+      - task: SonarSource.sonarcloud.14d9cde6-c1da-4d55-aa01-2965cd301255.SonarCloudPrepare@1
+        displayName: Prepare analysis on SonarCloud
+        enabled: False
+        inputs:
+          SonarCloud: fc376ad0-4e58-419c-8bf9-c47001a348e4
+          organization: kj2w
+          scannerMode: CLI
+          configMode: manual
+          cliProjectKey: kj2w.visualstudio.com.luhnapi.netfx
+          projectKey: kj2w.visualstudio.com.luhnapi.netfx
+          cliProjectName: luhnapi
+          projectName: luhnapi
+      - task: SonarSource.sonarcloud.ce096e50-6155-4de8-8800-4221aaeed4a1.SonarCloudAnalyze@1
+        displayName: Run Code Analysis
+        enabled: False
+      - task: SonarSource.sonarcloud.38b27399-a642-40af-bb7d-9971f69712e8.SonarCloudPublish@1
+        displayName: Publish Quality Gate Result
+        enabled: False
+      - task: DotNetCoreCLI@2
+        displayName: Publish
+        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+        inputs:
+          command: publish
+          publishWebProjects: false
+          projects: $(BuildParameters.RestoreBuildProjects)
+          arguments: --configuration $(BuildConfiguration) --output $(build.artifactstagingdirectory) --self-contained=false -r win-x86
+          zipAfterPublish: True
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Artifact: ArtifactStagingDirectory'
+        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+        inputs:
+          PathtoPublish: $(build.artifactstagingdirectory)
+          ArtifactName: ArtifactStagingDirectory
+      - task: AzureRmWebAppDeployment@3
+        displayName: 'Azure App Service Deploy: LuhnAPI'
+        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+        inputs:
+          ConnectedServiceName: d8605d42-0632-4360-9b5c-198922708bec
+          WebAppKind: api
+          WebAppName: LuhnAPI
+          Package: $(System.ArtifactsDirectory)/**/luhnAPI.zip
+          TakeAppOfflineFlag: true
+...

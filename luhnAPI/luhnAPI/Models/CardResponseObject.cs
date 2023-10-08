@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace LuhnAlgorithim.Models
 {
     public class CardResponseObject

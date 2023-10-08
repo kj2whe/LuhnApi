@@ -4,11 +4,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace LuhnAlgorithim.Models.Tests
 {
     [TestClass()]
+    [ExcludeFromCodeCoverage]
     public class FormatType
     {
         private readonly Models.FormatType _formatType;
